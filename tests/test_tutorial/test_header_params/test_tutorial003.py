@@ -11,9 +11,13 @@ client = TestClient(app)
     "path,headers,expected_status,expected_response",
     [
         ("/items", None, 200, {"X-Token values": None}),
-        ("/items", {"x-token": "foo"}, 200, {"X-Token values": ["foo"]}),
-        # TODO: fix this, is it a bug?
-        # ("/items", [("x-token", "foo"), ("x-token", "bar")], 200, {"X-Token values": ["foo", "bar"]}),
+        ("/items", {"x-token": "foo"}, 200, {"X-Token values": "foo"}),
+        (
+            "/items",
+            [("x-token", "foo"), ("x-token", "bar")],
+            200,
+            {"X-Token values": "foo, bar"},
+        ),
     ],
 )
 def test(path, headers, expected_status, expected_response):
@@ -40,7 +44,7 @@ def test_openapi_schema():
                                 {
                                     "title": "X-Token",
                                     "anyOf": [
-                                        {"type": "array", "items": {"type": "string"}},
+                                        {"type": "string"},
                                         {"type": "null"},
                                     ],
                                 }
@@ -49,8 +53,10 @@ def test_openapi_schema():
                                 # TODO: remove when deprecating Pydantic v1
                                 {
                                     "title": "X-Token",
-                                    "type": "array",
-                                    "items": {"type": "string"},
+                                    "anyOf": [
+                                        {"type": "string"},
+                                        {"type": "null"},
+                                    ],
                                 }
                             ),
                             "name": "x-token",
